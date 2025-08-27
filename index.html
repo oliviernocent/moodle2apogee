@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="author" content="Olivier Nocent">
+  <meta name="keywords" content="Moodle, Apogée">
+  <meta name="description" content="Outil de conversion de fichiers de notes">
+  <title>Moodle2Apogée</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
+  <script src="https://kit.fontawesome.com/e97537c6a1.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.3/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+
+<body>
+  <section class="hero is-link mb-5">
+    <div class="container">
+      <div class="hero-body">
+        <p class="title">Moodle2Apogée</p>
+        <p class="subtitle">Outil de conversion de fichiers de notes</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <section class="section box">
+      <h2 class="title">Étape 1</h2>
+      <h3 class="subtitle">Récupération du fichier de notes sur Moodle</h3>
+
+      <div class="content">
+        <ul>
+          <li>Connectez-vous à la plateforme <a href="https://examens.univ-reims.fr" target="_blank">Moodle Examens</a>
+          </li>
+          <li>Sélectionnez l'épreuve pour laquelle vous voulez exporter les notes</li>
+          <li>Exportez le fichier de notes au format Excel</li>
+        </ul>
+      </div>
+
+
+      <div class="file is-boxed">
+        <label class="file-label">
+          <input id="moodleInput" class="file-input" type="file" name="resume">
+          <span class="file-cta">
+            <span class="file-icon">
+              <i class="fas fa-upload"></i>
+            </span>
+            <span class="file-label">Déposez votre fichier Excel</span>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <section class="section box">
+      <h2 class="title">Étape 2</h2>
+      <h3 class="subtitle">Récupération du fichier de notes vierge sur Apogée</h3>
+
+      <div class="content">
+        <ul>
+          <li>Connectez-vous à l'application de <a href="https://frt.univ-reims.fr/snw-web/" target="_blank">Saisie de
+              Notes en Ligne</a></li>
+          <li>Sélectionnez l'épreuve pour laquelle vous voulez saisir des notes</li>
+          <li>Exportez le fichier de notes vierge au format CSV</li>
+        </ul>
+      </div>
+
+      <div class="file is-boxed">
+        <label class="file-label">
+          <input id="apogeeInput" class="file-input" type="file" name="resume">
+          <span class="file-cta">
+            <span class="file-icon">
+              <i class="fas fa-upload"></i>
+            </span>
+            <span class="file-label">Déposez votre fichier CSV</span>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <section class="section box">
+      <h2 class="title">Étape 3</h2>
+      <h3 class="subtitle">Génération du fichier de notes</h3>
+
+      <div class="content">
+        <ul>
+          <li>Cliquez sur le bouton <strong>Générer</strong></a>
+          </li>
+          <li>Téléchargez le fichier résultat sur votre ordinateur</li>
+          <li>Importez le fichier dans l'application de <a href="https://frt.univ-reims.fr/snw-web/"
+              target="_blank">Saisie de
+              Notes
+              en Ligne</a></li>
+        </ul>
+      </div>
+
+      <button id="process" class="button is-responsive is-link">Générer</button>
+    </section>
+
+  </div>
+
+  <footer class="footer mt-5">
+    <div class="content has-text-centered">
+      <p>
+        <a href="https://cv.hal.science/oliviernocent" target="_blank">Olivier Nocent</a> &copy; 2025
+        <a href="https://github.com/oliviernocent/moodle2apogee" target="_blank">
+          <i class="fa-brands fa-github"></i>
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    let moodleData, apogeeData;
+
+    function displayUploadSucceeded(buttonId) {
+      document.querySelector(`#${buttonId} + span > span`).classList.add("has-text-success");
+      document.querySelector(`#${buttonId} + span > span i`).classList.remove("fa-upload");
+      document.querySelector(`#${buttonId} + span > span i`).classList.add("fa-check-square");
+      document.querySelector(`#${buttonId} + span .file-label`).textContent = "Fichier déposé...";
+    }
+
+    moodleInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        // Get the binary data
+        const data = e.target.result;
+
+        // Convert the data to a workbook
+        const workbook = XLSX.read(data, { type: "binary" });
+
+        // Get the first sheet
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+        // Convert the sheet to JSON
+        moodleData = XLSX.utils.sheet_to_json(sheet);
+
+        // Do something with the JSON data
+        console.log(moodleData);
+
+        displayUploadSucceeded("moodleInput");
+      };
+
+      // Read the data as binary
+      reader.readAsBinaryString(file);
+    });
+
+    apogeeInput.addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        // Get the text data
+        const data = e.target.result;
+
+        apogeeData = data.split(/\r\n|\n/);
+
+        // Do something with the JSON data
+        console.log(apogeeData);
+
+        displayUploadSucceeded("apogeeInput");
+      };
+
+      // Read the data as binary
+      reader.readAsText(file);
+      /*
+      const file = event.target.files[0];
+      if (file) {
+        Papa.parse(file, {
+          header: true,
+          complete: function (results) {
+            displayUploadSucceeded("apogeeInput");
+
+            apogeeData = results.data;
+            //document.getElementById('output').innerText = JSON.stringify(results.data, null, 2);
+            console.log(apogeeData);
+          },
+          error: function (error) {
+            console.error('Error parsing CSV:', error);
+          }
+        });
+      }
+      */
+    });
+
+    function getMarkBy(studentId) {
+      for (let student of moodleData)
+        if (student["Numéro d’identification"] == studentId)
+          if (student["Note/20,00"] == "-")
+            return "";
+          else
+            return student["Note/20,00"];
+    }
+
+    process.addEventListener("click", () => {
+      if ((moodleData !== undefined) && (apogeeData !== undefined)) {
+        // Search for data start index
+        let i = 0;
+        let startIndex = -1;
+        while (startIndex == -1)
+          if (apogeeData[++i].indexOf("Code_etudiant;Nom_patronymique;Prenom;Type_resultat_attendu;Note;Bareme;Note_reportee") != -1)
+            startIndex = ++i;
+
+        for (i = startIndex; i < apogeeData.length; i++) {
+          let cols = apogeeData[i].split(";");
+          if (cols.length > 1) {
+            cols[4] = getMarkBy(cols[0]);
+            cols[5] = 20;
+            apogeeData[i] = cols.join(";");
+          }
+        }
+
+        console.log(apogeeData.join("\n"));
+
+        const blob = new Blob([apogeeData.join("\n")], { type: 'text/plain' });
+        const fileURL = URL.createObjectURL(blob);
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = fileURL;
+        downloadLink.download = 'example.csv';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+
+        URL.revokeObjectURL(fileURL);
+      }
+    });
+  </script>
+</body>
+
+</html>
