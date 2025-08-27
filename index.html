@@ -45,7 +45,7 @@
             <span class="file-icon">
               <i class="fas fa-upload"></i>
             </span>
-            <span class="file-label">Déposez votre fichier Excel</span>
+            <span class="file-label">Déposez votre fichier</span>
           </span>
         </label>
       </div>
@@ -75,7 +75,7 @@
             <span class="file-icon">
               <i class="fas fa-upload"></i>
             </span>
-            <span class="file-label">Déposez votre fichier CSV</span>
+            <span class="file-label">Déposez votre fichier</span>
           </span>
         </label>
       </div>
@@ -122,6 +122,14 @@
       document.querySelector(`#${buttonId} + span > span i`).classList.remove("fa-upload");
       document.querySelector(`#${buttonId} + span > span i`).classList.add("fa-check-square");
       document.querySelector(`#${buttonId} + span .file-label`).textContent = "Fichier déposé";
+      moodleAlert.classList.add("is-hidden");
+    }
+
+    function resetUploadDisplay(buttonId) {
+      document.querySelector(`#${buttonId} + span > span`).classList.remove("has-text-success");
+      document.querySelector(`#${buttonId} + span > span i`).classList.remove("fa-check-square");
+      document.querySelector(`#${buttonId} + span > span i`).classList.add("fa-upload");
+      document.querySelector(`#${buttonId} + span .file-label`).textContent = "Déposez votre fichier";
       moodleAlert.classList.add("is-hidden");
     }
 
@@ -208,6 +216,9 @@
         downloadLink.click();
 
         URL.revokeObjectURL(fileURL);
+
+        resetUploadDisplay("moodleInput");
+        resetUploadDisplay("apogeeInput");
       }
     });
   </script>
