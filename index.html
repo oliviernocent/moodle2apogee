@@ -49,6 +49,10 @@
           </span>
         </label>
       </div>
+
+      <div id="moodleAlert" class="notification is-danger is-hidden">
+        Format de fichier invalide.
+      </div>
     </section>
 
     <section class="section box">
@@ -111,12 +115,14 @@
 
   <script>
     let moodleData, apogeeData;
+    let apogeeOutputFilename;
 
     function displayUploadSucceeded(buttonId) {
       document.querySelector(`#${buttonId} + span > span`).classList.add("has-text-success");
       document.querySelector(`#${buttonId} + span > span i`).classList.remove("fa-upload");
       document.querySelector(`#${buttonId} + span > span i`).classList.add("fa-check-square");
-      document.querySelector(`#${buttonId} + span .file-label`).textContent = "Fichier déposé...";
+      document.querySelector(`#${buttonId} + span .file-label`).textContent = "Fichier déposé";
+      moodleAlert.classList.add("is-hidden");
     }
 
     moodleInput.addEventListener("change", (event) => {
@@ -126,19 +132,21 @@
         // Get the binary data
         const data = e.target.result;
 
-        // Convert the data to a workbook
-        const workbook = XLSX.read(data, { type: "binary" });
+        try {
+          // Convert the data to a workbook
+          const workbook = XLSX.read(data, { type: "binary" });
 
-        // Get the first sheet
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          // Get the first sheet
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-        // Convert the sheet to JSON
-        moodleData = XLSX.utils.sheet_to_json(sheet);
+          // Convert the sheet to JSON
+          moodleData = XLSX.utils.sheet_to_json(sheet);
 
-        // Do something with the JSON data
-        console.log(moodleData);
-
-        displayUploadSucceeded("moodleInput");
+          displayUploadSucceeded("moodleInput");
+        }
+        catch (error) {
+          moodleAlert.classList.remove("is-hidden");
+        }
       };
 
       // Read the data as binary
@@ -147,6 +155,8 @@
 
     apogeeInput.addEventListener('change', function (event) {
       const file = event.target.files[0];
+      apogeeOutputFilename = file.name.replace(".csv", "_complet.csv");
+
       const reader = new FileReader();
       reader.onload = function (e) {
         // Get the text data
@@ -154,32 +164,11 @@
 
         apogeeData = data.split(/\r\n|\n/);
 
-        // Do something with the JSON data
-        console.log(apogeeData);
-
         displayUploadSucceeded("apogeeInput");
       };
 
       // Read the data as binary
       reader.readAsText(file);
-      /*
-      const file = event.target.files[0];
-      if (file) {
-        Papa.parse(file, {
-          header: true,
-          complete: function (results) {
-            displayUploadSucceeded("apogeeInput");
-
-            apogeeData = results.data;
-            //document.getElementById('output').innerText = JSON.stringify(results.data, null, 2);
-            console.log(apogeeData);
-          },
-          error: function (error) {
-            console.error('Error parsing CSV:', error);
-          }
-        });
-      }
-      */
     });
 
     function getMarkBy(studentId) {
@@ -209,14 +198,12 @@
           }
         }
 
-        console.log(apogeeData.join("\n"));
-
         const blob = new Blob([apogeeData.join("\n")], { type: 'text/plain' });
         const fileURL = URL.createObjectURL(blob);
 
         const downloadLink = document.createElement('a');
         downloadLink.href = fileURL;
-        downloadLink.download = 'example.csv';
+        downloadLink.download = apogeeOutputFilename;
         document.body.appendChild(downloadLink);
         downloadLink.click();
 
