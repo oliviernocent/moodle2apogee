@@ -36,6 +36,15 @@
         </ul>
       </div>
 
+      <article class="message is-warning">
+        <div class="message-header">
+          <p>Attention</p>
+        </div>
+        <div class="message-body">
+          Vérifiez que votre fichier Excel contienne deux colonnes nommées <code>Numéro d’identification</code> et <code>Note/20,00</code>.
+        </div>
+      </article>
+
 
       <div class="file is-boxed">
         <label class="file-label">
@@ -179,10 +188,10 @@
     });
 
     function getIndexBy(columnName, columns) {
-      for (let i=0; i<columns.length; i++)
+      for (let i = 0; i < columns.length; i++)
         if (columns[i] == columnName)
           return i;
-      
+
       // No matching name found
       return -1;
     }
@@ -194,7 +203,7 @@
             return "";
           else
             return student["Note/20,00"];
-      
+
       // No mark found in the Moodle data file
       return "";
     }
@@ -211,8 +220,8 @@
         studentIdIndex = getIndexBy("Code_etudiant", columnNames);
         markIndex = getIndexBy("Note", columnNames);
         markingScaleIndex = getIndexBy("Bareme", columnNames);
-        
-        for (i = headerIndex+1; i < apogeeData.length; i++) {
+
+        for (i = headerIndex + 1; i < apogeeData.length; i++) {
           let cols = apogeeData[i].split(";");
           if (cols.length > 1) {
             cols[markIndex] = getMarkBy(cols[studentIdIndex]);
@@ -239,4 +248,4 @@
   </script>
 </body>
 
-</html> 
+</html>
