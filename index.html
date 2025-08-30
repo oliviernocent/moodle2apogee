@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
   <script src="https://kit.fontawesome.com/e97537c6a1.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.3/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 
 <body>
@@ -179,6 +178,15 @@
       reader.readAsText(file);
     });
 
+    function getIndexBy(columnName, columns) {
+      for (let i=0; i<columns.length; i++)
+        if (columns[i] == columnName)
+          return i;
+      
+      // No matching name found
+      return -1;
+    }
+
     function getMarkBy(studentId) {
       for (let student of moodleData)
         if (student["Numéro d’identification"] == studentId)
@@ -186,22 +194,29 @@
             return "";
           else
             return student["Note/20,00"];
+      
+      // No mark found in the Moodle data file
+      return "";
     }
 
     process.addEventListener("click", () => {
       if ((moodleData !== undefined) && (apogeeData !== undefined)) {
         // Search for data start index
         let i = 0;
-        let startIndex = -1;
-        while (startIndex == -1)
-          if (apogeeData[++i].indexOf("Code_etudiant;Nom_patronymique;Prenom;Type_resultat_attendu;Note;Bareme;Note_reportee") != -1)
-            startIndex = ++i;
-
-        for (i = startIndex; i < apogeeData.length; i++) {
+        let headerIndex = -1;
+        while (headerIndex == -1)
+          if (apogeeData[++i].indexOf("XX_ETUDIANTS_XX") != -1)
+            headerIndex = ++i;
+        let columnNames = apogeeData[headerIndex].split(";");
+        studentIdIndex = getIndexBy("Code_etudiant", columnNames);
+        markIndex = getIndexBy("Note", columnNames);
+        markingScaleIndex = getIndexBy("Bareme", columnNames);
+        
+        for (i = headerIndex+1; i < apogeeData.length; i++) {
           let cols = apogeeData[i].split(";");
           if (cols.length > 1) {
-            cols[4] = getMarkBy(cols[0]);
-            cols[5] = 20;
+            cols[markIndex] = getMarkBy(cols[studentIdIndex]);
+            cols[markingScaleIndex] = 20;
             apogeeData[i] = cols.join(";");
           }
         }
@@ -224,4 +239,4 @@
   </script>
 </body>
 
-</html>
+</html> 
